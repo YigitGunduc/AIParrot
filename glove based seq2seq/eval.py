@@ -37,7 +37,7 @@ for i in range(len(questions)):
         short_ans.append(answers[i])
         short_input.append(questions[i])
 
-
+#this file is going to be updated in the near future
 def clean_text(txt):
     txt = txt.lower()
     txt = re.sub(r"i'm", "i am", txt)
