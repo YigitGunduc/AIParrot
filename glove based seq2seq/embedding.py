@@ -19,9 +19,7 @@ NUM_SENTENCES = 20000
 MAX_SENTENCE_LENGTH = 25
 MAX_NUM_WORDS = 11000
 EMBEDDING_SIZE = 100
-
-input_texts, target_texts, target_texts_inputs = data_preprocessing.preprocessing()
-
+glove_path = "C:\\Users\\gunduc\\Documents\\projects\\python\\chatbot\\glove"
 
 def embedder(input_texts, target_texts, target_texts_inputs):
     input_tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
@@ -52,7 +50,7 @@ def embedder(input_texts, target_texts, target_texts_inputs):
 
     embeddings_dictionary = dict()
 
-    glove_file = open(r'C:/Users/gunduc/Desktop/parrot/data/glove.6B.100d.txt', encoding="utf8")
+    glove_file = open(r'C:\\Users\\gunduc\\Documents\\projects\\python\\chatbot\\glove\\glove.6B.100d.txt', encoding="utf8")
 
     for line in glove_file:
         records = line.split()
@@ -71,8 +69,8 @@ def embedder(input_texts, target_texts, target_texts_inputs):
                 embedding_matrix[i] = emb_vec
 
     return embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output
-input_texts, target_texts, target_texts_inputs = data_preprocessing.preprocessing()
-embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output = embedder(input_texts, target_texts, target_texts_inputs )
+
+
 def embedder_data(input_texts, target_texts, target_texts_inputs,embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output):
     input_tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
     input_tokenizer.fit_on_texts(input_texts)
@@ -87,12 +85,7 @@ def embedder_data(input_texts, target_texts, target_texts_inputs,embedding_matri
 
     decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=max_out_len, padding='post')
 
-    decoder_targets_one_hot = np.zeros((
-        len(input_texts),
-        max_out_len,
-        num_words_output
-    ),
-    dtype='float32')
+    decoder_targets_one_hot = np.zeros((len(input_texts), max_out_len, num_words_output), dtype='float32')
 
     for i, d in enumerate(output_input_integer_seq):
         for t, word in enumerate(d):
