@@ -3,13 +3,12 @@ import re
 
 def preprocessing():
 
-    lines = open("C:/Users/gunduc/Desktop/parrot/data/movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
-    convers = open("C:/Users/gunduc/Desktop/parrot/data/movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    lines = open("..\\data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    convers = open("..\\data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
 
     def clean_text(txt):
         txt = txt.lower()
         txt = re.sub(r"i'm", "i am", txt)
-        txt = re.sub(r"it's", "it is", txt)
         txt = re.sub(r"he's", "he is", txt)
         txt = re.sub(r"she's", "she is", txt)
         txt = re.sub(r"that's", "that is", txt)
@@ -50,7 +49,6 @@ def preprocessing():
 
     input_texts = []
     target_texts = []
-    target_texts_inputs = []
 
     for line in short_input:
         input_texts.append(clean_text(line))
@@ -58,7 +56,8 @@ def preprocessing():
         target_texts.append(clean_text(line))
 
     for i in range(len(target_texts)):
-        target_texts_inputs.append('<sos> ' + target_texts[i])
-        target_texts[i] = target_texts[i] + ' <eos>'
+        target_texts[i] = '\t' + target_texts[i] + '\n'
 
-    return input_texts, target_texts, target_texts_inputs
+    max_encoder_seq_length = max([len(txt) for txt in input_texts])
+    max_decoder_seq_length = max([len(txt) for txt in target_texts])
+    return input_texts, target_texts, max_encoder_seq_length, max_decoder_seq_length

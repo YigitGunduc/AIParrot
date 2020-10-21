@@ -3,18 +3,12 @@ from tensorflow.keras.layers import Input, LSTM, Dense, Embedding
 from data_preprocessing import preprocessing
 import embedding
 
-BATCH_SIZE = 64
-EPOCHS = 100
-LSTM_NODES =256
-NUM_SENTENCES = 20000
-MAX_SENTENCE_LENGTH = 25
-MAX_NUM_WORDS = 11000
+LSTM_NODES =32
 EMBEDDING_SIZE = 100
 
 input_texts, target_texts, target_texts_inputs = preprocessing()
 
 embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output = embedding.embedder(input_texts, target_texts, target_texts_inputs)
-
 
 embedding_layer = Embedding(num_words, EMBEDDING_SIZE, weights=[embedding_matrix], input_length=max_input_len,trainable= False)
 

@@ -1,176 +1,162 @@
-import string
-import re
-from tensorflow.keras.models import Model, load_model
-from tensorflow.keras.layers import Input
 import numpy as np
+import os
+import re
+import sys
+from tensorflow.keras.models import Model, load_model
+from tensorflow.keras.layers import Input, LSTM, Dense, Embedding
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.utils import to_categorical
+from numpy import array
+from numpy import asarray
+from numpy import zeros
+import embedding
+import data_preprocessing
+
+BATCH_SIZE = 64
+EPOCHS = 100
+LSTM_NODES =256
+NUM_SENTENCES = 20000
+MAX_SENTENCE_LENGTH = 25
+MAX_NUM_WORDS = 11000
+EMBEDDING_SIZE = 100
 
 
-batch_size = 64  # Batch size for training.
-epochs = 100  # Number of epochs to train for.
-latent_dim = 256  # Latent dimensionality of the encoding space.
-num_samples = 10000  # Number of samples to train on.
+def preprocessing():
 
-lines = open("data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
-convers = open("data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    lines = open("C:\\Users\\gunduc\\Desktop\\parrot\\data/movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    convers = open("C:\\Users\\gunduc\\Desktop\\parrot\\data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
 
-exchn = []
-for conver in convers:
-    exchn.append(conver.split(" +++$+++ ")[-1][1:-1].replace("'", "").replace(",", "").split())
+    def clean_text(txt):
+        txt = txt.lower()
+        txt = re.sub(r"i'm", "i am", txt)
+        txt = re.sub(r"it's", "it is", txt)
+        txt = re.sub(r"he's", "he is", txt)
+        txt = re.sub(r"she's", "she is", txt)
+        txt = re.sub(r"that's", "that is", txt)
+        txt = re.sub(r"what's", "what is", txt)
+        txt = re.sub(r"where's", "where is", txt)
+        txt = re.sub(r"\'ll", " will", txt)
+        txt = re.sub(r"\'ve", " have", txt)
+        txt = re.sub(r"\'re", " are", txt)
+        txt = re.sub(r"\'d", " would", txt)
+        txt = re.sub(r"won't", "will not", txt)
+        txt = re.sub(r"can't", "can not", txt)
 
-diag = {}
-for line in lines:
-    diag[line.split(" +++$+++ ")[0]] = line.split(" +++$+++ ")[-1]
+        return txt
 
-questions = []
-answers = []
+    exchn = []
+    for conver in convers:
+        exchn.append(conver.split(" +++$+++ ")[-1][1:-1].replace("'", "").replace(",", "").split())
 
-for conver in exchn:
-    for i in range(len(conver) - 1):
-        questions.append(diag[conver[i]])
-        answers.append(diag[conver[i + 1]])
+    diag = {}
+    for line in lines:
+        diag[line.split(" +++$+++ ")[0]] = line.split(" +++$+++ ")[-1]
 
-short_input = []
-short_ans = []
+    questions = []
+    answers = []
 
-for i in range(len(questions)):
-    if len(questions[i]) < 20:
-        short_ans.append(answers[i])
-        short_input.append(questions[i])
+    for conver in exchn:
+        for i in range(len(conver) - 1):
+            questions.append(diag[conver[i]])
+            answers.append(diag[conver[i + 1]])
 
-#this file is going to be updated in the near future
-def clean_text(txt):
-    txt = txt.lower()
-    txt = re.sub(r"i'm", "i am", txt)
-    txt = re.sub(r"he's", "he is", txt)
-    txt = re.sub(r"she's", "she is", txt)
-    txt = re.sub(r"that's", "that is", txt)
-    txt = re.sub(r"what's", "what is", txt)
-    txt = re.sub(r"where's", "where is", txt)
-    txt = re.sub(r"\'ll", " will", txt)
-    txt = re.sub(r"\'ve", " have", txt)
-    txt = re.sub(r"\'re", " are", txt)
-    txt = re.sub(r"\'d", " would", txt)
-    txt = re.sub(r"won't", "will not", txt)
-    txt = re.sub(r"can't", "can not", txt)
+    short_input = []
+    short_ans = []
 
-    return txt
+    for i in range(len(questions)):
+        if len(questions[i]) < 100 and len(answers[i]) < 100:
+            short_ans.append(answers[i])
+            short_input.append(questions[i])
 
+    input_texts = []
+    target_texts = []
+    target_texts_inputs = []
 
-input_texts = []
-target_texts = []
+    for line in short_input:
+        input_texts.append(clean_text(line))
+    for line in short_ans:
+        target_texts.append(clean_text(line))
 
-for line in short_input:
-    input_texts.append(clean_text(line))
-for line in short_ans:
-    target_texts.append(clean_text(line))
+    for i in range(len(target_texts)):
+        target_texts_inputs.append('<sos> ' + target_texts[i])
+        target_texts[i] = target_texts[i] + ' <eos>'
+        
 
-for i in range(len(target_texts)):
-    target_texts[i] = '\t' + target_texts[i] + '\n'
+    return input_texts[:1000], target_texts[:1000], target_texts_inputs[:1000]
 
+input_texts, target_texts, target_texts_inputs = preprocessing()
 
-input_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
-target_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
-num_encoder_tokens = len(input_characters)
-num_decoder_tokens = len(target_characters)
-max_encoder_seq_length = max([len(txt) for txt in input_texts])
-max_decoder_seq_length = max([len(txt) for txt in target_texts])
+embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output = embedding.embedder(input_texts, target_texts, target_texts_inputs)
+encoder_input_sequences, decoder_input_sequences, decoder_targets_one_hot = embedding.embedder_data(input_texts, target_texts, target_texts_inputs,embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output)
 
-
-print('Number of samples:', len(input_texts))
-print('Number of unique input tokens:', num_encoder_tokens)
-print('Number of unique output tokens:', num_decoder_tokens)
-print('Max sequence length for inputs:', max_encoder_seq_length)
-print('Max sequence length for outputs:', max_decoder_seq_length)
+model = load_model("seq2seq0.h5")
 
 
-input_token_index = dict(
-    [(char, i) for i, char in enumerate(input_characters)])
-target_token_index = dict(
-    [(char, i) for i, char in enumerate(target_characters)])
+embedding_layer = Embedding(num_words, EMBEDDING_SIZE, weights=[embedding_matrix], input_length=max_input_len,trainable= False)
 
-encoder_input_data = np.zeros(
-    (len(input_texts), max_encoder_seq_length, num_encoder_tokens),
-    dtype='float32')
+encoder_inputs_placeholder = Input(shape=(max_input_len,))
+x = embedding_layer(encoder_inputs_placeholder)
+encoder = LSTM(LSTM_NODES, return_state=True)
+encoder_outputs, h, c = encoder(x)
+encoder_states = [h, c]
 
-for i, input_text in enumerate(input_texts):
-    for t, char in enumerate(input_text):
-        encoder_input_data[i, t, input_token_index[char]] = 1.
-
-# Restore the model and construct the encoder and decoder.
-model = load_model('models\\seq2seq.h5')
-
-
-encoder_inputs = model.input[0]   # input_1
-encoder_outputs, state_h_enc, state_c_enc = model.layers[2].output   # lstm_1
-encoder_states = [state_h_enc, state_c_enc]
-encoder_model = Model(encoder_inputs, encoder_states)
-
-decoder_inputs = model.input[1]   # input_2
-decoder_state_input_h = Input(shape=(latent_dim,), name='input_3')
-decoder_state_input_c = Input(shape=(latent_dim,), name='input_4')
-decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
-decoder_lstm = model.layers[3]
-decoder_outputs, state_h_dec, state_c_dec = decoder_lstm(
-    decoder_inputs, initial_state=decoder_states_inputs)
-decoder_states = [state_h_dec, state_c_dec]
-decoder_dense = model.layers[4]
+decoder_inputs_placeholder = Input(shape=(max_out_len,))
+decoder_embedding = Embedding(num_words_output, LSTM_NODES)
+decoder_inputs_x = decoder_embedding(decoder_inputs_placeholder)
+decoder_lstm = LSTM(LSTM_NODES, return_sequences=True, return_state=True)
+decoder_outputs, _, _ = decoder_lstm(decoder_inputs_x, initial_state=encoder_states)
+decoder_dense = Dense(num_words_output, activation='softmax')
 decoder_outputs = decoder_dense(decoder_outputs)
+
+encoder_model = Model(encoder_inputs_placeholder, encoder_states)
+
+decoder_state_input_h = Input(shape=(LSTM_NODES,))
+decoder_state_input_c = Input(shape=(LSTM_NODES,))
+decoder_states_inputs = [decoder_state_input_h, decoder_state_input_c]
+
+decoder_inputs_single = Input(shape=(1,))
+decoder_inputs_single_x = decoder_embedding(decoder_inputs_single)
+decoder_outputs, h, c = decoder_lstm(decoder_inputs_single_x, initial_state=decoder_states_inputs)
+
+decoder_states = [h, c]
+decoder_outputs = decoder_dense(decoder_outputs)
+
 decoder_model = Model(
-    [decoder_inputs] + decoder_states_inputs,
+    [decoder_inputs_single] + decoder_states_inputs,
     [decoder_outputs] + decoder_states)
 
-# Reverse-lookup token index to decode sequences back to
-# something readable.
-reverse_input_char_index = dict(
-    (i, char) for char, i in input_token_index.items())
-reverse_target_char_index = dict(
-    (i, char) for char, i in target_token_index.items())
+idx2word_input = {v:k for k, v in word2idx_inputs.items()}
+idx2word_target = {v:k for k, v in word2idx_outputs.items()}
 
-
-# Decodes an input sequence.  Future work should support beam search.
-def decode_sequence(input_seq):
-    # Encode the input as state vectors.
+def translate_sentence(input_seq):
     states_value = encoder_model.predict(input_seq)
+    target_seq = np.zeros((1, 1))
+    target_seq[0, 0] = word2idx_outputs['<sos>']
+    eos = word2idx_outputs['<eos>']
+    output_sentence = []
 
-    # Generate empty target sequence of length 1.
-    target_seq = np.zeros((1, 1, num_decoder_tokens))
-    # Populate the first character of target sequence with the start character.
-    target_seq[0, 0, target_token_index['\t']] = 1.
+    for _ in range(max_out_len):
+        output_tokens, h, c = decoder_model.predict([target_seq] + states_value)
+        idx = np.argmax(output_tokens[0, 0, :])
 
-    # Sampling loop for a batch of sequences
-    # (to simplify, here we assume a batch of size 1).
-    stop_condition = False
-    decoded_sentence = ''
-    while not stop_condition:
-        output_tokens, h, c = decoder_model.predict(
-            [target_seq] + states_value)
+        if eos == idx:
+            break
 
-        # Sample a token
-        sampled_token_index = np.argmax(output_tokens[0, -1, :])
-        sampled_char = reverse_target_char_index[sampled_token_index]
-        decoded_sentence += sampled_char
+        word = ''
 
-        # Exit condition: either hit max length
-        # or find stop character.
-        if (sampled_char == '\n' or
-           len(decoded_sentence) > max_decoder_seq_length):
-            stop_condition = True
+        if idx > 0:
+            word = idx2word_target[idx]
+            output_sentence.append(word)
 
-        # Update the target sequence (of length 1).
-        target_seq = np.zeros((1, 1, num_decoder_tokens))
-        target_seq[0, 0, sampled_token_index] = 1.
-
-        # Update states
+        target_seq[0, 0] = idx
         states_value = [h, c]
 
-    return decoded_sentence
-
-
-for seq_index in range(100):
-    # Take one sequence (part of the training set)
-    # for trying out decoding.
-    input_seq = encoder_input_data[seq_index: seq_index + 1]
-    decoded_sentence = decode_sequence(input_seq)
+    return ' '.join(output_sentence)
+for i in range(10):
+    i = np.random.choice(len(input_texts))
+    input_seq = encoder_input_sequences[i:i+1]
+    translation = translate_sentence(input_seq)
     print('-')
-    print('Input sentence:', input_texts[seq_index])
-    print('Decoded sentence:', decoded_sentence)
+    print('Input:', input_texts[i])
+    print('Response:', translation)

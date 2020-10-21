@@ -1,31 +1,23 @@
 import numpy as np
-import os
-import re
-import sys
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, LSTM, Dense, Embedding
-from tensorflow.keras.preprocessing.text import Tokenizer
-from tensorflow.keras.preprocessing.sequence import pad_sequences
-from tensorflow.keras.utils import to_categorical
-from numpy import array
 from numpy import asarray
 from numpy import zeros
-import data_preprocessing
+from tensorflow.keras.preprocessing.text import Tokenizer
+from tensorflow.keras.preprocessing.sequence import pad_sequences
 
 BATCH_SIZE = 64
 EPOCHS = 100
-LSTM_NODES =256
+LSTM_NODES = 256
 NUM_SENTENCES = 20000
 MAX_SENTENCE_LENGTH = 25
 MAX_NUM_WORDS = 11000
 EMBEDDING_SIZE = 100
-glove_path = "C:\\Users\\gunduc\\Documents\\projects\\python\\chatbot\\glove"
+
 
 def embedder(input_texts, target_texts, target_texts_inputs):
     input_tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
     input_tokenizer.fit_on_texts(input_texts)
     input_integer_seq = input_tokenizer.texts_to_sequences(input_texts)
-    
+
     word2idx_inputs = input_tokenizer.word_index
 
     print('Total unique words in the input: %s' % len(word2idx_inputs))
@@ -50,7 +42,7 @@ def embedder(input_texts, target_texts, target_texts_inputs):
 
     embeddings_dictionary = dict()
 
-    glove_file = open(r'C:\\Users\\gunduc\\Documents\\projects\\python\\chatbot\\glove\\glove.6B.100d.txt', encoding="utf8")
+    glove_file = open(r'../../glove/glove.6B.100d.txt', encoding="utf8")
 
     for line in glove_file:
         records = line.split()
@@ -71,7 +63,7 @@ def embedder(input_texts, target_texts, target_texts_inputs):
     return embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output
 
 
-def embedder_data(input_texts, target_texts, target_texts_inputs,embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output):
+def embedder_data(input_texts, target_texts, target_texts_inputs, embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output):
     input_tokenizer = Tokenizer(num_words=MAX_NUM_WORDS)
     input_tokenizer.fit_on_texts(input_texts)
     input_integer_seq = input_tokenizer.texts_to_sequences(input_texts)
@@ -86,11 +78,10 @@ def embedder_data(input_texts, target_texts, target_texts_inputs,embedding_matri
     decoder_input_sequences = pad_sequences(output_input_integer_seq, maxlen=max_out_len, padding='post')
 
     decoder_targets_one_hot = np.zeros((len(input_texts), max_out_len, num_words_output), dtype='float32')
-
+    print("--------------------------------------------------")
+    print("====>",len(input_texts), max_out_len, num_words_output)
     for i, d in enumerate(output_input_integer_seq):
         for t, word in enumerate(d):
             decoder_targets_one_hot[i, t, word] = 1
 
-
     return encoder_input_sequences, decoder_input_sequences, decoder_targets_one_hot
-
