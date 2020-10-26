@@ -1,7 +1,6 @@
 import tensorflow as tf
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, LSTM, Dense, Embedding
-from data_preprocessing import preprocessing
 import numpy as np
 import data_preprocessing
 import model
@@ -15,7 +14,7 @@ MAX_SENTENCE_LENGTH = 25
 MAX_NUM_WORDS = 11000
 EMBEDDING_SIZE = 100
 
-input_texts, target_texts, target_texts_inputs = data_preprocessing.preprocessing()
+input_texts, target_texts, target_texts_inputs = data_preprocessing.futherprocessing()
 
 embedding_matrix, word2idx_inputs, word2idx_outputs, num_words, max_out_len, max_input_len, num_words_output = embedding.embedder(input_texts, target_texts, target_texts_inputs)
 
