@@ -1,14 +1,10 @@
-import string
 import re
+import string
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input
 import numpy as np
 
-
-batch_size = 64  # Batch size for training.
-epochs = 100  # Number of epochs to train for.
 latent_dim = 256  # Latent dimensionality of the encoding space.
-num_samples = 10000  # Number of samples to train on.
 
 lines = open("data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
 convers = open("data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
