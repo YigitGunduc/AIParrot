@@ -153,6 +153,7 @@ def translate_sentence(input_seq):
         states_value = [h, c]
 
     return ' '.join(output_sentence)
+    
 for i in range(10):
     i = np.random.choice(len(input_texts))
     input_seq = encoder_input_sequences[i:i+1]
