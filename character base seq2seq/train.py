@@ -24,9 +24,6 @@ num_samples = 100000
 num_tokens, token_index, _ = utils.character_set()
 input_texts, target_texts, max_encoder_seq_length, max_decoder_seq_length = data_preprocessing.preprocessing()
 
-max_encoder_seq_length = max([len(txt) for txt in input_texts])
-max_decoder_seq_length = max([len(txt) for txt in target_texts])
-
 model = model.seq2seq_model(num_tokens)
 
 model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
