@@ -4,10 +4,29 @@ from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input
 from tensorflow.keras.models import Model
 from tensorflow.keras.layers import Input, LSTM, Dense
+import data_preprocessing
 import numpy as np
+import utils
 
 latent_dim = 256  # Latent dimensionality of the encoding space.
 
+num_tokens, token_index, _ = utils.character_set()
+_, _, max_encoder_seq_length, max_decoder_seq_length = data_preprocessing.preprocessing()
+
+def toko(input_texts,max_encoder_seq_length,num_tokens):
+    
+    encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, len(num_tokens)),dtype='float32')
+    """
+    for t, char in enumerate(text):
+        encoder_input_data[0, t, token_index[char]] = 1.
+        encoder_input_data[0, t + 1:, token_index[' ']] = 1.
+    
+    return encoder_input_data
+    """
+    for i, input_text in enumerate(input_texts):
+        for t, char in enumerate(input_text):
+            encoder_input_data[i, t, input_token_index[char]] = 1.
+    return encoder_input_data        
 class Preparedata():
 
     def __init__(self,CharacterSet):
@@ -148,10 +167,8 @@ def decode_sequence(input_seq):
 
     return decoded_sentence
 
-prep = Preparedata(input_characters)
-
-
-input_seq = prep.Encoder("hello",1)
+quest = input("type your question : ")
+input_seq = toko([quest],max_encoder_seq_length,num_tokens)
 decoded_sentence = decode_sequence(input_seq)
 print('-')
 print('Input sentence:', input_seq)
