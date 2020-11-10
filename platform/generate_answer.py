@@ -1,72 +1,28 @@
 import re
 import string
+import numpy as np
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input
-from tensorflow.keras.models import Model
-from tensorflow.keras.layers import Input, LSTM, Dense
 import data_preprocessing
-import numpy as np
 import utils
 
 latent_dim = 256  # Latent dimensionality of the encoding space.
+max_encoder_seq_length =  107 # longest sentence encoder will encounter
+max_decoder_seq_length =  112 # longers sentence decoder will encounter
 
 num_tokens, token_index, _ = utils.character_set()
-_, _, max_encoder_seq_length, max_decoder_seq_length = data_preprocessing.preprocessing()
 
-def toko(input_texts,max_encoder_seq_length,num_tokens):
-    
-    encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, len(num_tokens)),dtype='float32')
+def tokenizer(input_texts, max_encoder_seq_length, num_tokens):
     """
-    for t, char in enumerate(text):
-        encoder_input_data[0, t, token_index[char]] = 1.
-        encoder_input_data[0, t + 1:, token_index[' ']] = 1.
-    
-    return encoder_input_data
+    takes text that you want to tokenize
+    takes max_encoder_seq_length and num_tokens for the dimention of the array
     """
+    encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_tokens), dtype='float32')
     for i, input_text in enumerate(input_texts):
         for t, char in enumerate(input_text):
-            encoder_input_data[i, t, input_token_index[char]] = 1.
-    return encoder_input_data        
-class Preparedata():
+            encoder_input_data[i, t, token_index[char]] = 1.
+    return encoder_input_data  
 
-    def __init__(self,CharacterSet):
-        self.MaxLength = len(CharacterSet)
-        self.CharacterSet = CharacterSet
-        self.Dict = dict()
-        self.__Dictionary()
-        
-    def __Dictionary(self):
-        for ind,content in enumerate(sorted(list(self.CharacterSet))):
-            self.Dict[ind] = content
-            self.Dict[content] = ind
-        return self.Dict
-    
-    def Encoder(self,InputString,Length = 1):
-        NN = len(InputString)
-        Encoded = np.zeros((NN,Length,len(self.CharacterSet)))
-        for n in range(NN):
-            for ind,content in enumerate(InputString[n]):
-                Encoded[n,ind,self.Dict[content]] = 1
-        return Encoded   
-    
-    def Decoder(self,EncodedText):
-        N = EncodedText.shape
-        NN = N[0]
-        MM = N[1]
-        KK = N[2]
-        XX = np.zeros(KK,dtype=int)
-        XX[self.Dict[' ']] = 1
-        Values = [] 
-        print(NN,MM,XX)
-        sxx = np.sum(EncodedText,axis=2)
-        ind = np.where(sxx == 0)
-        EncodedText[ind] = XX
-        for n in range(NN):    
-            Str = ""
-            for ind,content in enumerate(EncodedText[n]):
-                Str += "".join(self.Dict[np.argmax(content)])
-            Values.append(Str)    
-        return Values
 
 def clean_text(txt):
     txt = txt.lower()
@@ -87,21 +43,15 @@ def clean_text(txt):
 
 
 input_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
-target_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
-num_encoder_tokens = len(input_characters)
-num_decoder_tokens = len(target_characters)
+input_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
+num_tokens = len(input_characters)
 
 
-print('Number of unique input tokens:', num_encoder_tokens)
-print('Number of unique output tokens:', num_decoder_tokens)
-
-input_token_index = dict(
+token_index = dict(
     [(char, i) for i, char in enumerate(input_characters)])
-target_token_index = dict(
-    [(char, i) for i, char in enumerate(target_characters)])
 
 # Restore the model and construct the encoder and decoder.
-model = load_model('seq2seq0.h5')
+model = load_model('C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\platform\\seq2seq0.h5')
 
 encoder_inputs = model.input[0]   # input_1
 encoder_outputs, state_h_enc, state_c_enc = model.layers[2].output   # lstm_1
@@ -123,10 +73,8 @@ decoder_model = Model(
     [decoder_outputs] + decoder_states)
 # Reverse-lookup token index to decode sequences back to
 # something readable.
-reverse_input_char_index = dict(
-    (i, char) for char, i in input_token_index.items())
-reverse_target_char_index = dict(
-    (i, char) for char, i in target_token_index.items())
+reverse_char_index = dict(
+    (i, char) for char, i in token_index.items())
 
 
 # Decodes an input sequence.  Future work should support beam search.
@@ -135,9 +83,9 @@ def decode_sequence(input_seq):
     states_value = encoder_model.predict(input_seq)
 
     # Generate empty target sequence of length 1.
-    target_seq = np.zeros((1, 1, num_decoder_tokens))
+    target_seq = np.zeros((1, 1, num_tokens))
     # Populate the first character of target sequence with the start character.
-    target_seq[0, 0, target_token_index['\t']] = 1.
+    target_seq[0, 0, token_index['\t']] = 1.
 
     # Sampling loop for a batch of sequences
     # (to simplify, here we assume a batch of size 1).
@@ -149,7 +97,7 @@ def decode_sequence(input_seq):
 
         # Sample a token
         sampled_token_index = np.argmax(output_tokens[0, -1, :])
-        sampled_char = reverse_target_char_index[sampled_token_index]
+        sampled_char = reverse_char_index[sampled_token_index]
         decoded_sentence += sampled_char
 
         # Exit condition: either hit max length
@@ -159,7 +107,7 @@ def decode_sequence(input_seq):
             stop_condition = True
 
         # Update the target sequence (of length 1).
-        target_seq = np.zeros((1, 1, num_decoder_tokens))
+        target_seq = np.zeros((1, 1, num_tokens))
         target_seq[0, 0, sampled_token_index] = 1.
 
         # Update states
@@ -167,9 +115,8 @@ def decode_sequence(input_seq):
 
     return decoded_sentence
 
+
 quest = input("type your question : ")
-input_seq = toko([quest],max_encoder_seq_length,num_tokens)
+input_seq = tokenizer([quest], max_encoder_seq_length, num_tokens)
 decoded_sentence = decode_sequence(input_seq)
-print('-')
-print('Input sentence:', input_seq)
 print('Decoded sentence:', decoded_sentence)
