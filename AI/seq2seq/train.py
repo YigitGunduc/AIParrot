@@ -28,8 +28,9 @@ max_encoder_seq_length = max([len(txt) for txt in input_texts])
 max_decoder_seq_length = max([len(txt) for txt in target_texts])
 
 model = model.seq2seq_model(num_tokens)
+opt = tf.keras.optimizers.RMSprop(learning_rate=0.01)
 
-model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
+model.compile(optimizer=opt, loss='categorical_crossentropy', metrics=['accuracy'])
 
 for j in range(0, len(input_texts), 10000):
 
@@ -62,7 +63,7 @@ for j in range(0, len(input_texts), 10000):
 
     callback = tf.keras.callbacks.EarlyStopping(monitor='loss', patience=3)
 
-    model.fit([encoder_input_data, decoder_input_data], decoder_target_data, batch_size=batch_size, epochs=200, callbacks=[callback], validation_split=0.2)
+    model.fit([encoder_input_data, decoder_input_data], decoder_target_data, batch_size=batch_size, epochs=500, callbacks=[callback], validation_split=0.1)
     model.save(f"seq2seq{j}.h5")
 
 print("training has done")
