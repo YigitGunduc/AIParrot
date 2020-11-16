@@ -3,7 +3,6 @@ import string
 import numpy as np
 from tensorflow.keras.models import Model, load_model
 from tensorflow.keras.layers import Input
-import data_preprocessing
 import utils
 
 latent_dim = 256  # Latent dimensionality of the encoding space.
@@ -13,10 +12,6 @@ max_decoder_seq_length =  112 # longers sentence decoder will encounter
 num_tokens, token_index, _ = utils.character_set()
 
 def tokenizer(input_texts, max_encoder_seq_length, num_tokens):
-    """
-    takes text that you want to tokenize
-    takes max_encoder_seq_length and num_tokens for the dimention of the array
-    """
     encoder_input_data = np.zeros((len(input_texts), max_encoder_seq_length, num_tokens), dtype='float32')
     for i, input_text in enumerate(input_texts):
         for t, char in enumerate(input_text):
@@ -24,34 +19,16 @@ def tokenizer(input_texts, max_encoder_seq_length, num_tokens):
     return encoder_input_data  
 
 
-def clean_text(txt):
-    txt = txt.lower()
-    txt = re.sub(r"i'm", "i am", txt)
-    txt = re.sub(r"he's", "he is", txt)
-    txt = re.sub(r"she's", "she is", txt)
-    txt = re.sub(r"that's", "that is", txt)
-    txt = re.sub(r"what's", "what is", txt)
-    txt = re.sub(r"where's", "where is", txt)
-    txt = re.sub(r"\'ll", " will", txt)
-    txt = re.sub(r"\'ve", " have", txt)
-    txt = re.sub(r"\'re", " are", txt)
-    txt = re.sub(r"\'d", " would", txt)
-    txt = re.sub(r"won't", "will not", txt)
-    txt = re.sub(r"can't", "can not", txt)
-
-    return txt
-
 
 input_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
 input_characters = sorted(list(re.sub(r'[A-Z]', '', string.printable)))
 num_tokens = len(input_characters)
 
 
-token_index = dict(
-    [(char, i) for i, char in enumerate(input_characters)])
+token_index = dict([(char, i) for i, char in enumerate(input_characters)])
 
 # Restore the model and construct the encoder and decoder.
-model = load_model('C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\platform\\seq2seq0.h5')
+model = load_model('C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\platform\\seq2seq10000.h5')
 
 encoder_inputs = model.input[0]   # input_1
 encoder_outputs, state_h_enc, state_c_enc = model.layers[2].output   # lstm_1
@@ -73,8 +50,7 @@ decoder_model = Model(
     [decoder_outputs] + decoder_states)
 # Reverse-lookup token index to decode sequences back to
 # something readable.
-reverse_char_index = dict(
-    (i, char) for char, i in token_index.items())
+reverse_char_index = dict((i, char) for char, i in token_index.items())
 
 
 # Decodes an input sequence.  Future work should support beam search.

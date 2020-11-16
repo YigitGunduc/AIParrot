@@ -6,8 +6,8 @@ import numpy as np
 
 latent_dim = 256  # Latent dimensionality of the encoding space.
 
-lines = open("..\\data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
-convers = open("..\\data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
+lines = open("C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\AI\\data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
+convers = open("C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\AI\\data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
 
 exchn = []
 for conver in convers:
@@ -93,8 +93,8 @@ for i, input_text in enumerate(input_texts):
         encoder_input_data[i, t, input_token_index[char]] = 1.
 
 # Restore the model and construct the encoder and decoder.
-model = load_model('seq2seq0.h5')
-
+model = load_model('C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\AI\\seq2seq\\seq2seq0.h5')
+print("model loaded")
 
 encoder_inputs = model.input[0]   # input_1
 encoder_outputs, state_h_enc, state_c_enc = model.layers[2].output   # lstm_1
@@ -161,7 +161,7 @@ def decode_sequence(input_seq):
 
     return decoded_sentence
 
-
+print("done")
 for seq_index in range(100):
     # Take one sequence (part of the training set)
     # for trying out decoding.

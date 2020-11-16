@@ -1,10 +1,9 @@
 import re
 
-
 def preprocessing():
 
-    lines = open("C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\AI\\stage2\\data\\movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
-    convers = open("C:\\Users\\gunduc\\Desktop\\parrot-repos\\parrot\\AI\\stage2\\data\\movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    lines = open("../data/movie_lines.txt", encoding="utf-8", errors="ignore").read().split("\n")
+    convers = open("../data/movie_conversations.txt", encoding="utf-8", errors="ignore").read().split("\n")
 
     def clean_text(txt):
         txt = txt.lower()
@@ -62,5 +61,3 @@ def preprocessing():
     max_decoder_seq_length = max([len(txt) for txt in target_texts])
     return input_texts, target_texts, max_encoder_seq_length, max_decoder_seq_length
 
-
-preprocessing()
