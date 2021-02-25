@@ -5,3 +5,4 @@ BATCH_SIZE = 1024
 VERBOSE = 1
 SAVE_AT = 20
 LEARNING_RATE = 0.0001
+LOSS = 'sparse_categorical_crossentropy'

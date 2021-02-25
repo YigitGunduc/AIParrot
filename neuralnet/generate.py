@@ -32,9 +32,6 @@ decoder_outputs = decoder_dense(decoder_outputs)
 
 Seq2SeqModel = Model([encoder_inputs, decoder_inputs], decoder_outputs, name='model_encoder_training')
 
-# Seq2SeqModel.load_weights('seq2seq-weights-460-epochs.h5') # loading pretrained weight
-
-
 
 # +++++++++++++++++++++++++++++++++ model for predictions +++++++++++++++++++++++++++++++++ 
 encoder_model = Model(encoder_inputs, encoder_states)
@@ -54,20 +51,14 @@ decoder_model = Model(
                     [decoder_outputs] + decoder_states)
 
 
-# +++++++++++++++++++++++++++++++++ tokenizer +++++++++++++++++++++++++++++++++ 
-tokenizer = Tokenizer()
-
-tokenizer.load_tokenizer('tokenizer-vocab_size-5000.pickle')
-
-
-# +++++++++++++++++++++++++++++++++ Predict function and Class +++++++++++++++++++++++++++++++++ 
+# +++++++++++++++++++++++++++++++++ Predict Class +++++++++++++++++++++++++++++++++ 
 class Predict():
     def __init__(self, model, tokenizer):
         self.model = model
         self.tokenizer = tokenizer
 
     def create_response(self, question):
-        question = np.expand_dims(tokenizer.tokenize_sequence(clean_text(question)), axis=0)
+        question = np.expand_dims(self.tokenizer.tokenize_sequence(clean_text(question)), axis=0)
         result = self.predict_sentence(question)
         return result 
 
@@ -77,14 +68,14 @@ class Predict():
             states_value = encoder_model.predict(input_seq)
 
             target_seq = np.zeros((1, 1))
-            target_seq[0, 0] = tokenizer.tokenizer.word_index['<sos>']
+            target_seq[0, 0] = self.tokenizer.tokenizer.word_index['<sos>']
             output_sentence = []
 
             for _ in range(MAXLEN):
                 output_tokens, h, c = decoder_model.predict([target_seq] + states_value)
                 idx = np.argmax(output_tokens)
 
-                if tokenizer.tokenizer.index_word[idx] == '<eos>':
+                if self.tokenizer.tokenizer.index_word[idx] == '<eos>':
 
                     break
 
@@ -92,7 +83,5 @@ class Predict():
                 target_seq[0, 0] = idx
                 states_value = [h, c]
 
-        return tokenizer.decode_sequence(output_sentence)
+        return self.tokenizer.decode_sequence(output_sentence)
 
-pred = Predict(Seq2SeqModel, tokenizer)
-print(pred.create_response('how was your day'))
