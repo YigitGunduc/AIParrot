@@ -16,7 +16,9 @@ tokenizer = Tokenizer()
 
 encoder_input_data, decoder_input_data, decoder_output_data = create_training_data()  # parsing the dataset and creating conversation pairs
 
-encoder_input_data, decoder_input_data, decoder_output_data  = tokenizer.tokenize_and_pad_training_data(encoder_input_data, decoder_input_data, decoder_output_data)  # tokenizing and padding those pairs
+encoder_input_data, decoder_input_data, decoder_output_data = tokenizer.tokenize_and_pad_training_data(encoder_input_data,
+                                                                                                        decoder_input_data,
+                                                                                                        decoder_output_data)  # tokenizing and padding those pairs
 
 tokenizer.save_tokenizer(f'tokenizer-vocab_size-{VOCAB_SIZE}')  # saving tokenizer for layer use
 
