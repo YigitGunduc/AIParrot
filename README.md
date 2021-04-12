@@ -20,7 +20,6 @@
   </p>
 </p>
 
-
 ### Built With
 
 This project is built using Python and Tensorflow & Keras.
@@ -34,7 +33,26 @@ Sequence-to-sequence(Seq2Seq) models are built for converting sequences from one
 
 ![seq2seq model](https://pytorch.org/tutorials/_images/seq2seq_ts.png)
 
+## Data
 
+[Cornell Movie--Dialogs Corpus](https://www.cs.cornell.edu/~cristian/Cornell_Movie-Dialogs_Corpus.html)
+
+```
+This corpus contains a large metadata-rich collection of fictional conversations extracted from raw movie scripts:
+- 220,579 conversational exchanges between 10,292 pairs of movie characters
+- involves 9,035 characters from 617 movies
+- in total 304,713 utterances
+- movie metadata included:
+    - genres
+    - release year
+    - IMDB rating
+    - number of IMDB votes
+    - IMDB rating
+- character metadata included:
+    - gender (for 3,774 characters)
+    - position on movie credits (3,321 characters)
+- see README.txt (included) for details
+```
 
 <!-- GETTING STARTED -->
 ## Getting Started
@@ -82,8 +100,37 @@ predict = Predict(Seq2SeqModel, tokenizer)
 print(predict.create_response('How are you?'))
 ```
 
-### Running the Web-App Locally
+## Chat responses
+```
+- Could you please repeat that?
+- what is wrong
 
+- Thank you. That helps a lot.
+- i love you too
+
+- hey!
+- hey
+
+- What do you mean?
+- i mean you are a <unk>
+
+- Hi! I’m Alex. And you?
+- yes
+
+- Where are you from?
+- i am out
+
+- How can I help you?
+- i don't know
+
+- I have no idea
+- you are not going to hurt me i am not going to hurt you
+```
+
+
+
+### Running the Web-App Locally
+![Alt text](assets/ss.png?raw=true "Title")
 ```sh
 # navigate to the AIParrot/webapp folder 
 cd AIParrot/webapp
